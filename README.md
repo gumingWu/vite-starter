@@ -46,3 +46,73 @@ This template should help get you started developing with Vue 3 in Vite.
 
 可以看到自定义前缀的变量也暴露了
 
+## 运行时获取配置
+
+如何在`vite.config.ts`中就能获取到当前的运行模式，和环境变量呢
+
+将`defineConfig`写成函数形式就能获取运行模式
+
+```js
+export default defineConfig((options) => {
+  console.log(options); // { mode: 'demo', command: 'serve', ssrBuild: false }
+  
+  return {
+      envDir: './viteEnv',
+      envPrefix: ['VITE_', 'MY_', 'YOUR_'],
+      plugins: [vue(), vueJsx()],
+      resolve: {
+        alias: {
+          '@': fileURLToPath(new URL('./src', import.meta.url))
+        }
+      }
+    }
+})
+```
+
+vite内置函数`loadEnv`能获取环境变量
+
+```js
+import { fileURLToPath, URL } from 'node:url'
+
+import { defineConfig, loadEnv } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
+
+// https://vitejs.dev/config/
+// export default defineConfig({
+//   envDir: './viteEnv',
+//   envPrefix: ['VITE_', 'MY_', 'YOUR_'],
+//   plugins: [vue(), vueJsx()],
+//   resolve: {
+//     alias: {
+//       '@': fileURLToPath(new URL('./src', import.meta.url))
+//     }
+//   }
+// })
+export default defineConfig((options) => {
+  console.log(options); // { mode: 'demo', command: 'serve', ssrBuild: false }
+  const env = loadEnv(options.mode, './viteEnv', ['VITE_', 'MY_', 'YOUR_'])
+
+  console.log(env);
+  /**
+   * {
+      VITE_NODE_ENV: 'demo',
+      VITE_OWNER: 'Inner',
+      VITE_POSITION: 'viteEnv/.env.demo',
+      MY_PARAM1: '内部的变量1',
+      YOUR_PARAM2: '内部的变量2'
+    }
+   */
+  
+  return {
+      envDir: './viteEnv',
+      envPrefix: ['VITE_', 'MY_', 'YOUR_'],
+      plugins: [vue(), vueJsx()],
+      resolve: {
+        alias: {
+          '@': fileURLToPath(new URL('./src', import.meta.url))
+        }
+      }
+    }
+})
+```
